@@ -15,8 +15,8 @@ class ConectareMQTTClass
 	#define MQTT_SERIAL_PUBLISH_CH "Lumini/Esp32"
 	#define MQTT_SERIAL_RECEIVER_CH "Lumini/Esp32"
 	#define ID_MAP_LENGTH 5
-	const char* ssid = "MyWifi";
-	const char* password = "parola";
+	 const char* ssid = "MyWifi";
+	 const char* password = "parola";
 	 String txt, txtCopy;
 	 const char* mqtt_server = "192.168.0.105";
 	 ConectareMQTTClass();
