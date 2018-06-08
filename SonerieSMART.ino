@@ -1,20 +1,23 @@
 
+#include "Temperature.h"
 #include "ConectareMQTT.h"
 #define LIGHT_ACTIVATE_PIN 2
 #define BUTTON_RING_PIN  25
+#define POWER_4_BUTTON_RING_PIN 5
 #define BUZZER_PIN 21
 
 volatile bool buzzerTaskAlive = false;
 unsigned long startMillis;
 ConectareMQTTClass mqtt;
 TaskHandle_t Buzzer_Task;
+TemperatureClass temperatura;
 
 void codeForBuzzer_Task(void *parameter) {
 	for (;;) {
 		digitalWrite(BUZZER_PIN, HIGH);
 		vTaskDelay(1000);
 		digitalWrite(BUZZER_PIN, LOW);
-		vTaskDelay(200);
+		vTaskDelay(1200);
 
 		if (Buzzer_Task == NULL)
 		{
@@ -45,6 +48,21 @@ void  ConectareMQTTClass::callback(char* topic, uint8_t *payload, unsigned int l
 			digitalWrite(LIGHT_ACTIVATE_PIN, LOW);
 			Publica("Am stins becul.");
 		}
+		else if(txt.equals("AfiseazaTemperatura")) {
+			
+			txtCopy = txt;
+			char temp[50];
+			String s = String(temperatura.getTemperature());
+			s.toCharArray(temp, s.length() + 1);
+			Publica(temp);
+			//Serial.println(s);
+		}
+		else if (txt.equals("AfiseazaUmiditatea")) {
+			char tempw[50];
+			String s = String(temperatura.getHumidity());
+			s.toCharArray(tempw, s.length() + 1);
+			Publica(tempw);
+		}
 		else {
 			txtCopy = txt;
 		}
@@ -73,7 +91,8 @@ void interruptsHandle() {
 
 void setup()
 {
-	//Serial.begin(115200);
+	Serial.begin(115200);
+	pinMode(POWER_4_BUTTON_RING_PIN,OUTPUT);
 	pinMode(LIGHT_ACTIVATE_PIN, OUTPUT);
 	pinMode(BUZZER_PIN, OUTPUT);
 	pinMode(BUTTON_RING_PIN, INPUT);
@@ -82,6 +101,8 @@ void setup()
 	mqtt.setup_wifi();
 	mqtt.setupM();
 	mqtt.reconnect();
+	digitalWrite(POWER_4_BUTTON_RING_PIN,HIGH);
+	temperatura.setupT();
 }
 
 void loop()
@@ -93,10 +114,12 @@ void loop()
 		//Serial.println("buzzerTaskAlive = true");
 		if (millis()-startMillis>15000) {
 			mqtt.Publica("A sunat cineva la usa!");
+			digitalWrite(POWER_4_BUTTON_RING_PIN, LOW);
+			delay(30);
+			digitalWrite(POWER_4_BUTTON_RING_PIN, HIGH);
 			Buzzer_Task = NULL;
 			buzzerTaskAlive = false;
 		}
 	}
-	
 	
 }
